@@ -1,0 +1,14 @@
+# Virtual environment
+.venv/
+
+# Python bytecode and test caches
+# Used for when I generate test files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated graph files
+graph-files/*.html
+
+# macOS
+.DS_Store
