@@ -1,6 +1,6 @@
 from google.cloud import storage
 
-BUCKET_NAME = "cloud-computing-homework-2-bucket"
+BUCKET_NAME = "cloud-computing-homework-2"
 DIRECTORY = "pages/"
 
 # Grab the contents of every html file in my bucket as a string
