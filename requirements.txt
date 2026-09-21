@@ -13,9 +13,12 @@ idna==3.20
 opentelemetry-api==1.44.0
 proto-plus==1.28.4
 protobuf==7.36.2
+psutil==7.2.2
+pure_eval==0.2.4
 pyasn1==0.6.4
 pyasn1_modules==0.4.2
 pycparser==3.0
+Pygments==2.21.0
 requests==2.34.2
 typing_extensions==4.16.0
 urllib3==2.8.0

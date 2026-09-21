@@ -3,28 +3,32 @@ from google.cloud import storage
 BUCKET_NAME = "cloud-computing-homework-2-bucket"
 DIRECTORY = "pages/"
 
-# # Grab every html file from the "pages" directory in my bucket
-# def list_pages(bucket_name=BUCKET_NAME, directory=DIRECTORY):
-#     client = storage.Client()
-
-#     return [
-#         # Google cloud doesn't actually have directories (in a normal bucket)
-#         # So I need to remove the 
-#         blob.name.removeprefix(directory)
-#         for blob in client.list_blobs(bucket_name, prefix=directory)
-#         if blob.name.endswith(".html")
-#     ]
-
-
-if __name__ == "__main__":
+# Grab the contents of every html file in my bucket as a string
+def get_file_contents_from_GCS(bucket_name: str = BUCKET_NAME, directory: str = DIRECTORY) -> dict[str, str]:
     client = storage.Client()
 
-    # This returns an iterator
-    output = client.list_blobs(BUCKET_NAME)
-    # This gives me all the names in my blob iterator
-    names = [blob.name for blob in output]
+    # Client.list_blobs returns an iterator of all my blobs in my bucket
+    # A blob is just a reference to a file in GCS, not a file itself
+    blob_iterator = client.list_blobs(bucket_name)
 
-    # Found 10000 objects
-    print(f"Found {len(names)} objects")
-    # ['pages/0.html', 'pages/1.html', 'pages/10.html', 'pages/100.html', 'pages/1000.html']
-    print(names[:5])
+    # Consume my iterator into a list 
+    blobs = list(blob_iterator)
+
+    # Download the contents of every blob into local memory
+    html_pages = {}
+    for blob in blobs:
+        html_pages[blob.name.removeprefix(directory)] = blob.download_as_text()
+
+        # uncomment this if you don't want it to take forever.
+        # and comment the above line
+        # if blob.name == "pages/1001.html": 
+        #     html_pages[blob.name.removeprefix(directory)] = blob.download_as_text()
+
+    return html_pages
+
+
+# TODO write a test module for this
+# TODO make a dummy function for tests that just gets the files from the local dir
+if __name__ == "__main__":
+    output = get_file_contents_from_GCS()
+    print(output["1001.html"])
