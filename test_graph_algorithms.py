@@ -4,6 +4,8 @@ from graph_algorithms import get_file_contents_from_disk, parse_links
 # Run by calling 'pytest' in the terminal
 def test_get_local_pages():
     pages_dict = get_file_contents_from_disk()
+    assert "<html>" in pages_dict[1000]
+    assert "</a>" in pages_dict[1000]
     assert len(pages_dict) == 10000
 
 
@@ -94,9 +96,7 @@ def test_parse_links():
         </html>
         """
 
-    html_block_links = ['2319.html', '9854.html', '124.html', '4510.html', '4706.html', '950.html',
-                        '6431.html', '4705.html', '1628.html', '4354.html', '6372.html', '1812.html',
-                        '8039.html']
-    assert parse_links('<a HREF="2319.html">x</a>') == ["2319.html"]
+    html_block_links = [2319, 9854, 124, 4510, 4706, 950, 6431, 4705, 1628, 4354, 6372, 1812, 8039]
+    assert parse_links('<a HREF="2319.html">x</a>') == [2319]
     assert parse_links("<html><body>text</body></html>") == []
     assert parse_links(html_block) == html_block_links
