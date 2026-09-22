@@ -1,9 +1,11 @@
 from google.cloud import storage
+from pathlib import Path
 
 BUCKET_NAME = "cloud-computing-homework-2"
 DIRECTORY = "pages/"
+HTML_FILES_DIR = "graph-files"
 
-# Grab the contents of every html file in my bucket as a string
+"""Grab the contents of every html file in my bucket as a string"""
 def get_file_contents_from_GCS(bucket_name: str = BUCKET_NAME, directory: str = DIRECTORY) -> dict[str, str]:
     client = storage.Client()
 
@@ -19,16 +21,28 @@ def get_file_contents_from_GCS(bucket_name: str = BUCKET_NAME, directory: str = 
     for blob in blobs:
         html_pages[blob.name.removeprefix(directory)] = blob.download_as_text()
 
-        # uncomment this if you don't want it to take forever.
-        # and comment the above line
-        # if blob.name == "pages/1001.html": 
-        #     html_pages[blob.name.removeprefix(directory)] = blob.download_as_text()
+    return html_pages
+
+"""
+Grab the contents of all the html files in my subdirectory and return that as a string
+I am using this function for tests
+"""
+def get_file_contents_from_disk(directory: str = HTML_FILES_DIR) -> dict[str, str]:
+    # Grab my current directory, jump up, then go into the directory of my html files
+    graph_files_dir = Path(__file__).parent / directory
+
+
+    html_pages = {}
+    for path in graph_files_dir.glob("*.html"):
+        html_pages[path.name] = path.read_text(encoding="utf-8")
+
 
     return html_pages
 
 
+
 # TODO write a test module for this
-# TODO make a dummy function for tests that just gets the files from the local dir
 if __name__ == "__main__":
-    output = get_file_contents_from_GCS()
+    # output = get_file_contents_from_GCS()
+    output = get_file_contents_from_disk()
     print(output["1001.html"])
