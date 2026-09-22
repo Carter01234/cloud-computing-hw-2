@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from google.cloud import storage
 from pathlib import Path
 import re
@@ -55,8 +56,88 @@ def parse_links(html: str) -> list[int]:
     return [int(n) for n in LINK_RE.findall(html)]
 
 
-"""Average, Median, Max, Min and Quintiles of incoming and outgoing links across all the files."""
-def compute_link_properties(pages: list[str]):
+
+"""Builds my graph representation. Outer list is 0 - 9999. Inner list is all the outgoing edges """
+def build_graph_representation(pages: dict[int, str]) -> list[list[int]]:
+    # I need to presize my list
+    adjacency_list = [[] for _ in range(len(pages))]
+    for page_name, page_contents in pages.items():
+        adjacency_list[page_name] = parse_links(page_contents)
+
+    return adjacency_list
+
+
+######################################################################################################
+
+@dataclass
+class GraphStats:
+    outgoing_mean: float
+    outgoing_median: int
+    outgoing_minimum: int
+    outgoing_maximum: int
+    outgoing_quintiles: list[int]
+    incoming_mean: float
+    incoming_median: int
+    incoming_minimum: int
+    incoming_maximum: int
+    incoming_quintiles: list[int]
+
+
+"""Sum divided by count."""
+def mean(values: list[int]) -> float:
+    return sum(values) / len(values)
+
+"""Gets the middle value"""
+def median(values: list[int]) -> int:
+    ordered = sorted(values)
+    mid = len(ordered) // 2
+    return ordered[mid]
+
+
+"""The 20th, 40th, 60th and 80th percentile cut points"""
+def quintiles(values: list[int]) -> list[int]:
+    # sort my list
+    ordered = sorted(values)
+    list_length = len(ordered)
+
+    cuts = []
+    for i in range(1, 5):
+        # 2000, 4000, 6000, 8000 
+        cutoff_index = i * list_length // 5   
+        # get the element at that index and add it to cuts     
+        cuts.append(ordered[cutoff_index])
+
+    return cuts
+
+
+"""Compute the mean, median, min and max of incoming and outgoing links across all pages"""
+def compute_link_properties(pages: list[list[int]]) -> GraphStats:
+    degrees_out: list[int] = [len(page) for page in pages]
+
+    # Creates a list of zeros, one per page: [0, 0, 0, ..., 0] with len(pages) entries.
+    in_counts = [0] * len(pages)
+    for targets in pages:
+        # targets is one pages outgoing link list
+        for target in targets:
+            # For each page that the current page links to, 
+            # bump the incoming links counter.
+            in_counts[target] += 1
+
+    return GraphStats(
+        outgoing_mean=mean(degrees_out),
+        outgoing_median=median(degrees_out),
+        outgoing_minimum=min(degrees_out),
+        outgoing_maximum=max(degrees_out),
+        outgoing_quintiles=quintiles(degrees_out),
+        incoming_mean=mean(in_counts),
+        incoming_median=median(in_counts),
+        incoming_minimum=min(in_counts),
+        incoming_maximum=max(in_counts),
+        incoming_quintiles=quintiles(in_counts),
+    )
+
+
+def pageRank(pages: dict[int, str]): 
     print("TODO")
 
 
@@ -64,7 +145,10 @@ def compute_link_properties(pages: list[str]):
 if __name__ == "__main__":
     # output = get_file_contents_from_GCS()
     output = get_file_contents_from_disk()
-    print(output[1001])
+    graph_rep = build_graph_representation(output)
+    statistics = compute_link_properties(graph_rep)
+    print(statistics)
+    
 
 
 
