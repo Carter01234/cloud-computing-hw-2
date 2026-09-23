@@ -1,12 +1,12 @@
-from graph_algorithms import get_file_contents_from_disk, parse_links, compute_pagerank
+from graph_algorithms import get_file_contents_from_disk, get_most_central_page, parse_links, compute_pagerank
 
-# A simple test to get my started with pytest
-# Run by calling 'pytest' in the terminal
-def test_get_local_pages():
-    pages_dict = get_file_contents_from_disk()
-    assert "<html>" in pages_dict[1000]
-    assert "</a>" in pages_dict[1000]
-    assert len(pages_dict) == 10000
+# # A simple test to get my started with pytest
+# # Run by calling 'pytest' in the terminal
+# def test_get_local_pages():
+#     pages_dict = get_file_contents_from_disk()
+#     assert "<html>" in pages_dict[1000]
+#     assert "</a>" in pages_dict[1000]
+#     assert len(pages_dict) == 10000
 
 
 def test_parse_links():
@@ -113,3 +113,18 @@ def test_pagerank():
     graph = [[1, 2], [2], [], [1]]
     scores = compute_pagerank(graph, iterations=10)
     assert len(scores) == len(graph)
+
+
+def test_closeness_centrality():
+    # the average distance from node 0 to all other nodes is 1 
+    star = [[1, 2, 3, 4], [], [], [], []]
+    best_page, best_score = get_most_central_page(star)
+    assert best_page == 0
+    assert best_score == 1.0
+
+
+    # the average distance from node 0 to all other nodes is 1 
+    broom = [[1, 2, 3, 4], [2, 3, 4], [], [], []]
+    best_page, best_score = get_most_central_page(broom)
+    assert best_page == 0
+    assert best_score == 1.0

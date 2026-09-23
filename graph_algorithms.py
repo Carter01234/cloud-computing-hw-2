@@ -292,8 +292,8 @@ def get_most_central_page(graph: list[list[int]]) -> tuple[int, float]:
 
 
 if __name__ == "__main__":
-    # output = get_file_contents_from_GCS()
-    output = get_file_contents_from_disk()
+    output = get_file_contents_from_GCS()
+    # output = get_file_contents_from_disk()
     graph_rep = build_graph_representation(output)
     statistics = compute_link_properties(graph_rep)
     print(statistics)
