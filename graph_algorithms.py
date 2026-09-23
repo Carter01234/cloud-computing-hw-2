@@ -225,8 +225,10 @@ def compute_original_pagerank(
 
 #####################################################################################
 
-"""Distance from `source` to every node reachable via out-edges.
-Unreachable nodes are left at -1."""
+"""
+Distance from `source` to every node.
+Unreachable nodes are left at -1.
+"""
 def bfs_distances(graph: list[list[int]], source: int) -> list[int]:
     n = len(graph)
     distance = [-1] * n
@@ -234,31 +236,45 @@ def bfs_distances(graph: list[list[int]], source: int) -> list[int]:
     queue = deque([source])
 
     while queue:
+        # give me the leftmost element of my deque
+        # this is the outer vertex
         current = queue.popleft()
+        # for every elements neighbor
         for neighbor in graph[current]:
+            # if that neighbor has not been visited before
             if distance[neighbor] == -1:
+                # Set the distance source to 1 greater than the distance from current
+                # current could have already been a neighbor because of the outer loop
+                # so if you are two away from the source, you get 2 + 1.
                 distance[neighbor] = distance[current] + 1
                 queue.append(neighbor)
 
     return distance
 
 """
-Wasserman-Faust closeness centrality -- the standard adaptation for graphs
-where a node can't necessarily reach every other node (very common here,
-since links only go one direction).
-
-C(v) = (reachable / (n-1)) * (reachable / sum_of_distances_to_reachable)
+Give me the closeness centrality of a graph and a node
 """
 def closeness_centrality(graph: list[list[int]], node: int) -> float:
     n = len(graph)
+    # gives me a graph that has the data I need for CS
+    # given as a list of number [-1, 2, 3, ... N]
     distances = bfs_distances(graph, node)
-    reachable = [d for d in distances if d > 0]
 
+    # If node is disconnected from graph return 0
+    # otherwise filter list
+    reachable = [d for d in distances if d > 0]
     if not reachable:
         return 0.0
 
     reachable_count = len(reachable)
     total_distance = sum(reachable)
+
+    # (reachable_count / total_distance) is the calculation on 
+    # the slides for closeness centrality for a given node
+    #
+    # (reachable_count / (n - 1)) is what fraction of the entire graph 
+    # this node can actually get to. Otherwise, one subgraph with a very close neighbor 
+    # could beat out a bigger graph with 97 links
     return (reachable_count / (n - 1)) * (reachable_count / total_distance)
 
 
