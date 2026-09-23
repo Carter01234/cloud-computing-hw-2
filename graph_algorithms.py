@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from google.cloud import storage
+from collections import deque
 from pathlib import Path
 import re
 
@@ -222,16 +223,70 @@ def compute_original_pagerank(
     return scores, iteration
 
 
+#####################################################################################
+
+"""Distance from `source` to every node reachable via out-edges.
+Unreachable nodes are left at -1."""
+def bfs_distances(graph: list[list[int]], source: int) -> list[int]:
+    n = len(graph)
+    distance = [-1] * n
+    distance[source] = 0
+    queue = deque([source])
+
+    while queue:
+        current = queue.popleft()
+        for neighbor in graph[current]:
+            if distance[neighbor] == -1:
+                distance[neighbor] = distance[current] + 1
+                queue.append(neighbor)
+
+    return distance
+
+"""
+Wasserman-Faust closeness centrality -- the standard adaptation for graphs
+where a node can't necessarily reach every other node (very common here,
+since links only go one direction).
+
+C(v) = (reachable / (n-1)) * (reachable / sum_of_distances_to_reachable)
+"""
+def closeness_centrality(graph: list[list[int]], node: int) -> float:
+    n = len(graph)
+    distances = bfs_distances(graph, node)
+    reachable = [d for d in distances if d > 0]
+
+    if not reachable:
+        return 0.0
+
+    reachable_count = len(reachable)
+    total_distance = sum(reachable)
+    return (reachable_count / (n - 1)) * (reachable_count / total_distance)
+
+
+"""The page with the highest closeness centrality, and its score."""
+def get_most_central_page(graph: list[list[int]]) -> tuple[int, float]:
+    best_page, best_score = -1, -1.0
+    for node in range(len(graph)):
+        score = closeness_centrality(graph, node)
+        if score > best_score:
+            best_page, best_score = node, score
+    return best_page, best_score
+
+
+
+
+
 if __name__ == "__main__":
     # output = get_file_contents_from_GCS()
     output = get_file_contents_from_disk()
     graph_rep = build_graph_representation(output)
     statistics = compute_link_properties(graph_rep)
+    print(statistics)
     page_rank = compute_pagerank(graph_rep)
     page_rank_original = compute_original_pagerank(graph_rep)
     print(f'The top 5 page ranks are {top_pages(page_rank)}')
     print(f'The top 5 page ranks from original algo are {top_pages(page_rank)}')
-    print(statistics)
+    most_central_page = get_most_central_page(graph_rep)
+    print(f'The most central page is {most_central_page}')
     
 
 
