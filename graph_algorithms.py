@@ -176,13 +176,61 @@ def top_pages(scores: list[float], k: int = 5) -> list[tuple[int, float]]:
 
 
 
+"""
+Calculate pagerank using the original algorithm, not the simplified one above.
+
+Stops once the total of all PageRank scores changes by less than
+`change_threshold` (0.5%) between one iteration and the next.
+"""
+def compute_original_pagerank(
+    graph: list[list[int]],
+    damping: float = 0.85,
+    change_threshold: float = 0.005,
+    max_iterations: int = 1000,
+) -> tuple[list[float], int]:
+    n = len(graph)
+    scores = [1.0 / n] * n
+    previous_total = sum(scores)
+
+    for iteration in range(1, max_iterations + 1):
+        new_scores = [(1.0 - damping) / n] * n
+
+        for page, targets in enumerate(graph):
+            if not targets:
+                continue 
+
+            # Add in damping, which is a random factor meant to
+            # prevent closed loops in the page rank algorithm
+            share = damping * scores[page] / len(targets)
+            for target in targets:
+                new_scores[target] += share
+
+        new_total = sum(new_scores)
+
+        # calculate how much the score changed from the previous iteration 
+        percent_change = abs(new_total - previous_total) / previous_total
+
+        scores = new_scores
+        previous_total = new_total
+
+        # if the score changed from the previous iteration less than 
+        # our change threshhold, we have reached a point where
+        # we don't need to run our algo any more
+        if percent_change < change_threshold:
+            break
+
+    return scores, iteration
+
+
 if __name__ == "__main__":
     # output = get_file_contents_from_GCS()
     output = get_file_contents_from_disk()
     graph_rep = build_graph_representation(output)
     statistics = compute_link_properties(graph_rep)
     page_rank = compute_pagerank(graph_rep)
-    print(f'The top 5 page ranks are {top_pages(page_rank)}' )
+    page_rank_original = compute_original_pagerank(graph_rep)
+    print(f'The top 5 page ranks are {top_pages(page_rank)}')
+    print(f'The top 5 page ranks from original algo are {top_pages(page_rank)}')
     print(statistics)
     
 

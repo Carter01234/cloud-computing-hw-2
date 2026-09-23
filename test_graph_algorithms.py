@@ -1,4 +1,4 @@
-from graph_algorithms import get_file_contents_from_disk, parse_links
+from graph_algorithms import get_file_contents_from_disk, parse_links, compute_pagerank
 
 # A simple test to get my started with pytest
 # Run by calling 'pytest' in the terminal
@@ -100,3 +100,16 @@ def test_parse_links():
     assert parse_links('<a HREF="2319.html">x</a>') == [2319]
     assert parse_links("<html><body>text</body></html>") == []
     assert parse_links(html_block) == html_block_links
+
+
+
+def test_pagerank():
+    """Each page should have exactly half"""
+    graph = [[1], [0]]
+    scores = compute_pagerank(graph, iterations=50)
+    assert scores == [0.5, 0.5]
+
+    """test_output_length_matches_input"""
+    graph = [[1, 2], [2], [], [1]]
+    scores = compute_pagerank(graph, iterations=10)
+    assert len(scores) == len(graph)
