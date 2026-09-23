@@ -137,8 +137,42 @@ def compute_link_properties(pages: list[list[int]]) -> GraphStats:
     )
 
 
-def pageRank(pages: dict[int, str]): 
-    print("TODO")
+#############################################################
+
+"""Return the PageRank score of every page, indexed the same way as `graph`."""
+def compute_pagerank(graph: list[list[int]], iterations: int = 50) -> list[float]:
+    n = len(graph)
+    # Creates a list of size n where each item is (1 / n)
+    scores = [1.0 / n] * n
+
+    # loop 50 times so the scores get more accurate
+    for _ in range(iterations):
+        # Creates a list of size n where each item is 0.0
+        # This is the output of this iteration of pagerank
+        new_scores = [0.0] * n
+
+        # go through one iteration of the graph
+        # and update all the page ranks 
+        for page, targets in enumerate(graph):
+            # If the target list is empty skip the iteration
+            # this prevents division by 0
+            if not targets:
+                continue                 
+
+            # calculate the current page rank
+            cur_pagerank = scores[page] / len(targets)
+            # Sum up all neighboring pageranks
+            for target in targets:
+                new_scores[target] += cur_pagerank
+        # Update the overall scores        
+        scores = new_scores
+
+    return scores
+
+"""Return the top-k (page, score) pairs, highest score first."""
+def top_pages(scores: list[float], k: int = 5) -> list[tuple[int, float]]:
+    ranked = sorted(enumerate(scores), key=lambda pair: pair[1], reverse=True)
+    return ranked[:k]
 
 
 
@@ -147,6 +181,8 @@ if __name__ == "__main__":
     output = get_file_contents_from_disk()
     graph_rep = build_graph_representation(output)
     statistics = compute_link_properties(graph_rep)
+    page_rank = compute_pagerank(graph_rep)
+    print(f'The top 5 page ranks are {top_pages(page_rank)}' )
     print(statistics)
     
 
